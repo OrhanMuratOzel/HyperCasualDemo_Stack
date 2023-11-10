@@ -14,6 +14,7 @@ namespace GameOne
         {
             this.gridManager = gridManager;
             matchCount = 0;
+            rebuildSize = int.Parse(rebuildText.text);
         }
 
         public void IncreaseMatchCount()

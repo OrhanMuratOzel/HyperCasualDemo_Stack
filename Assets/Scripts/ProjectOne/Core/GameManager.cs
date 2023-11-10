@@ -11,17 +11,16 @@ namespace GameOne
         void Start()
         {
             pool.Init(gridManager);
+            cameraController.Init();
             gridManager.Init(pool, cameraController, uiController,gridSize);
             uiController.Init(gridManager);
-            cameraController.Init();
         }
         private void OnValidate()
         {
             if (Application.isPlaying)
                 return;
-            gridManager.Init(pool, cameraController, uiController,gridSize);
             cameraController.Init();
-            gridManager.EditorBuildGrid();
+            gridManager.EditorBuildGrid(pool, cameraController, gridSize);
         }
     }
 }

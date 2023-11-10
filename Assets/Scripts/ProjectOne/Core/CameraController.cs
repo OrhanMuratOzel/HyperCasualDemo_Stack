@@ -9,7 +9,6 @@ namespace GameOne
         public void Init()
         {
             cam = Camera.main;
-            //- take start size than arrange it
         }
         public void GridSizeChanged(int size)
         {

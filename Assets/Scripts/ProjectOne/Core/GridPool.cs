@@ -37,7 +37,6 @@ namespace GameOne
             for (int i = 0; i < size; i++)
             {
                 var gridRefHolder = GetFromPool();
-                Debug.Log(dynamicPool.Count);
                 gridRefHolder.gameObject.SetActive(true);
                 returnList.Add(gridRefHolder);
             }
@@ -62,6 +61,16 @@ namespace GameOne
 
 #if UNITY_EDITOR
         #region Editor
+        public List<Grid> EditorGetActiveStaticGrids()
+        {
+            var returnList = new List<Grid>();
+            for (var i = 0; i < staticPoolList.Count; i++)
+            {
+                if (staticPoolList[i].gameObject.activeInHierarchy)
+                    returnList.Add(staticPoolList[i]);
+            }
+            return returnList;
+        }
         public List<Grid> EditorGetWantedSizeGrid(int capacity, int size)
         {
             var returnList = new List<Grid>();
@@ -85,6 +94,15 @@ namespace GameOne
             }
 
             return returnList;
+        }
+        public void EditorSetStaticList(int from)
+        {
+            if(from<=9)
+                from = 9;
+            var deleteAmount = staticPoolList.Count - from;
+            if(deleteAmount<=0)
+                return;
+            staticPoolList.RemoveRange(from, deleteAmount);
         }
         #endregion
 #endif

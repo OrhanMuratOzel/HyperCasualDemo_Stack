@@ -4,10 +4,10 @@ namespace GameOne
 {
     public class GridManager : MonoBehaviour
     {
-        [SerializeField] private List<Grid> activeGrids;
         [SerializeField] private float evenOffSet;
 
         private GridPool pool;
+        private List<Grid> activeGrids;
         private UIController uiController;
         private CameraController camController;
         private int gridSize = 0;
@@ -21,6 +21,7 @@ namespace GameOne
             this.camController = camController;
             gridLength = gridSize * gridSize;
             activeGrids = pool.GetWantedSizeGrid(gridLength);
+            ReBuildGrid(gridSize);
         }
         public void ReBuildGrid(int size)
         {
@@ -29,7 +30,7 @@ namespace GameOne
             gridSize = size;
             gridLength = gridSize * gridSize;
             var wantedGridSize = gridLength - activeGrids.Count;
-            if (wantedGridSize>0)
+            if (wantedGridSize > 0)
             {
                 activeGrids.AddRange(pool.GetWantedSizeGrid(wantedGridSize));
             }
@@ -57,7 +58,6 @@ namespace GameOne
                     tmpVector.z = y * 1 - offsetY;
                     if (isEven)
                         tmpVector.x += evenOffSet;
-
                     activeGrids[y * gridSize + x].transform.position = tmpVector;
                     activeGrids[y * gridSize + x].SetGridPosition(y * gridSize + x);
                 }
@@ -88,11 +88,10 @@ namespace GameOne
 
             var adjescentGrids = new List<Grid>();
             adjescentGrids = FindAdjescentGrids(grid.GetIndex);
-            if (adjescentGrids.Count >=3)
+            if (adjescentGrids.Count >= 3)
                 OnMatch(adjescentGrids);
             else
             {
-                Debug.Log(adjescentGrids.Count);
                 foreach (var item in adjescentGrids)
                 {
                     item.IsInSearch = false;
@@ -105,32 +104,32 @@ namespace GameOne
             var returnVal = false;
             var gridLength = gridSize * gridSize;
 
-            if (index%gridSize!=0)
+            if (index % gridSize != 0)
             {
-              //  Debug.Log("Sol gidebilir");
+                //  Debug.Log("Sol gidebilir");
                 returnVal = true;
-              //  returnVal = activeGrids[index - 1].IsOccupied;
+                //  returnVal = activeGrids[index - 1].IsOccupied;
             }
 
-            if (!returnVal && (index+1) % gridSize != 0)
+            if (!returnVal && (index + 1) % gridSize != 0)
             {
-              //  Debug.Log("sað gidebilir");
+                //  Debug.Log("sað gidebilir");
                 returnVal = true;
                 //returnVal = activeGrids[index +1].IsOccupied;
             }
 
-            if (!returnVal && index+gridSize < gridLength)
+            if (!returnVal && index + gridSize < gridLength)
             {
-             //   Debug.Log("yukarý gidebilir");
+                //   Debug.Log("yukarý gidebilir");
                 returnVal = true;
-               // returnVal = activeGrids[index + gridSize].IsOccupied;
+                // returnVal = activeGrids[index + gridSize].IsOccupied;
             }
 
-            if (!returnVal && index-gridSize >= 0)
+            if (!returnVal && index - gridSize >= 0)
             {
-              //  Debug.Log("aþaðý gidebilir");
+                //  Debug.Log("aþaðý gidebilir");
                 returnVal = true;
-              //  returnVal = activeGrids[index - gridSize].IsOccupied;
+                //  returnVal = activeGrids[index - gridSize].IsOccupied;
             }
 
             return returnVal;
@@ -143,11 +142,11 @@ namespace GameOne
 
             if (index % gridSize != 0 && activeGrids[index - 1].IsOccupied && !activeGrids[index - 1].IsInSearch)
             {
-                returnGrid.AddRange(FindAdjescentGrids(index-1));
+                returnGrid.AddRange(FindAdjescentGrids(index - 1));
             }
             if ((index + 1) % gridSize != 0 && activeGrids[index + 1].IsOccupied && !activeGrids[index + 1].IsInSearch)
             {
-                returnGrid.AddRange(FindAdjescentGrids(index +1));
+                returnGrid.AddRange(FindAdjescentGrids(index + 1));
             }
 
             if (index + gridSize < gridLength && activeGrids[index + gridSize].IsOccupied && !activeGrids[index + gridSize].IsInSearch)
@@ -155,7 +154,7 @@ namespace GameOne
                 returnGrid.AddRange(FindAdjescentGrids(index + gridSize));
             }
 
-            if (index - gridSize >= 0&& activeGrids[index - gridSize].IsOccupied && !activeGrids[index - gridSize].IsInSearch)
+            if (index - gridSize >= 0 && activeGrids[index - gridSize].IsOccupied && !activeGrids[index - gridSize].IsInSearch)
             {
                 returnGrid.AddRange(FindAdjescentGrids(index - gridSize));
             }
@@ -163,7 +162,6 @@ namespace GameOne
         }
         private void OnMatch(List<Grid> grid)
         {
-            Debug.Log(grid.Count);
             foreach (var item in grid)
             {
                 item.ClearGrid();
@@ -176,30 +174,47 @@ namespace GameOne
 #if UNITY_EDITOR
 
         #region Editor
-        public void EditorBuildGrid()
+        public void EditorBuildGrid(GridPool pool, CameraController camController, int gridSize)
         {
             if (gridSize < 2)
                 return;
+
+            this.pool = pool;
+            this.gridSize = gridSize;
             gridLength = gridSize * gridSize;
+            activeGrids = pool.EditorGetActiveStaticGrids();
+            gridLength = gridSize * gridSize;
+
             if (activeGrids.Count < gridLength)
-            {
                 activeGrids.AddRange(pool.EditorGetWantedSizeGrid(activeGrids.Count, gridLength));
-            }
             else
-            {
                 EditorDeactivateUnUsedGrids(gridLength);
-            }
             ClearGrids();
             PositionGrid();
             camController.GridSizeChanged(gridSize);
         }
         private void EditorDeactivateUnUsedGrids(int from)
         {
+            var destroyObjects = new List<GameObject>();
             for (var i = from; i < activeGrids.Count; i++)
             {
-                activeGrids[i].gameObject.SetActive(false);
+                if (i > 8)
+                    destroyObjects.Add(activeGrids[i].gameObject);
+                else
+                    activeGrids[i].gameObject.SetActive(false);
             }
-            activeGrids.RemoveRange(from, activeGrids.Count - from);
+            if (destroyObjects.Count > 0)
+            {
+                UnityEditor.EditorApplication.delayCall += () =>
+                {
+                    foreach (var item in destroyObjects)
+                    {
+                        DestroyImmediate(item);
+                    }
+                };
+            }
+            
+            pool.EditorSetStaticList(from);
         }
         #endregion
 #endif
