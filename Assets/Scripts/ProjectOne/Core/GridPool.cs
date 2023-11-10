@@ -18,9 +18,10 @@ namespace GameOne
         }
         private void AddStaticListToQueue()
         {
-            for (int i = 0; i < staticPoolList.Count; i++)
+            for (var i = 0; i < staticPoolList.Count; i++)
             {
-                dynamicPool.Enqueue(staticPoolList[i]);
+                staticPoolList[i].Init(gridManager);
+                BackToPool(staticPoolList[i]);
             }
         }
         #endregion
@@ -30,26 +31,21 @@ namespace GameOne
         {
             return dynamicPool.Count > 0 ? dynamicPool.Dequeue() : CreateGrid();
         }
-
-        public List<Grid> GetActiveStaticGrids()
+        public List<Grid> GetWantedSizeGrid(int size)
         {
             var returnList = new List<Grid>();
-            for (int i = 0; i < staticPoolList.Count; i++)
+            for (int i = 0; i < size; i++)
             {
-                if (staticPoolList[i].gameObject.activeInHierarchy)
-                    returnList.Add(staticPoolList[i]);
+                var gridRefHolder = GetFromPool();
+                Debug.Log(dynamicPool.Count);
+                gridRefHolder.gameObject.SetActive(true);
+                returnList.Add(gridRefHolder);
             }
-            return returnList;
-        }
-        public List<Grid> GetWantedSizeGrid(int capacity, int size)
-        {
-            var returnList = new List<Grid>();
             return returnList;
         }
         private Grid CreateGrid()
         {
             var grid = Instantiate(gridPrefab, transform);
-            grid.gameObject.SetActive(true);
             grid.Init(gridManager);
             return grid;
         }
@@ -58,6 +54,7 @@ namespace GameOne
         #region Back To Pool
         public void BackToPool(Grid grid)
         {
+            grid.ClearGrid();
             grid.gameObject.SetActive(false);
             dynamicPool.Enqueue(grid);
         }
@@ -84,6 +81,7 @@ namespace GameOne
                 var gridObj = Instantiate(gridPrefab,transform);
                 gridObj.gameObject.SetActive(true);
                 staticPoolList.Add(gridObj);
+                returnList.Add(gridObj);
             }
 
             return returnList;

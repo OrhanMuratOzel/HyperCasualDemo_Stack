@@ -4,62 +4,68 @@ namespace GameOne
 {
     public class GridManager : MonoBehaviour
     {
-        private GridPool pool;
-        private UIManager uiManager;
-        private int gridSize = 0;
         [SerializeField] private List<Grid> activeGrids;
-        [SerializeField] private GridPositionParameters gridPositionParameters;
-        public void Init(GridPool pool,UIManager uiManager, int gridSize)
+        [SerializeField] private float evenOffSet;
+
+        private GridPool pool;
+        private UIController uiController;
+        private CameraController camController;
+        private int gridSize = 0;
+        private int gridLength = 0;
+
+        public void Init(GridPool pool, CameraController camController, UIController uiController, int gridSize)
         {
             this.pool = pool;
-            this.uiManager = uiManager;
+            this.uiController = uiController;
             this.gridSize = gridSize;
-            activeGrids = pool.GetActiveStaticGrids();
+            this.camController = camController;
+            gridLength = gridSize * gridSize;
+            activeGrids = pool.GetWantedSizeGrid(gridLength);
         }
-
         public void ReBuildGrid(int size)
         {
-            var newGridSize = size * size;
-            Debug.Log(activeGrids.Count + " "+ newGridSize);
-            if (activeGrids.Count<newGridSize)
+            if (size < 2)
+                return;
+            gridSize = size;
+            gridLength = gridSize * gridSize;
+            var wantedGridSize = gridLength - activeGrids.Count;
+            if (wantedGridSize>0)
             {
-                //-listeyi arttýr
-                var poolList = pool.GetWantedSizeGrid(activeGrids.Count, newGridSize);
-                Debug.Log(poolList.Count);
-                activeGrids.AddRange(poolList);
+                activeGrids.AddRange(pool.GetWantedSizeGrid(wantedGridSize));
             }
             else
             {
-                Debug.Log("Deactive ");
-                DeactivateUnUsedGrids(newGridSize);
-                //- boyut þu an iyi
+                DeactivateUnUsedGrids(gridLength);
             }
             ClearGrids();
             PositionGrid();
+            camController.GridSizeChanged(size);
         }
         private void PositionGrid()
         {
             var tmpVector = Vector3.zero;
-            float offsetX = (gridSize - 1) * 1 / 2;
-            float offsetY = (gridSize - 1) * 1 / 2;
-            for (int x = 0; x < gridSize; x++)
+            var isEven = gridSize % 2 == 0;
+            var offsetX = (gridSize - 1) * .5f;
+            var offsetY = (gridSize - 1) * .5f;
+
+            for (var x = 0; x < gridSize; x++)
             {
-                for (int y = 0; y < gridSize; y++)
+                for (var y = 0; y < gridSize; y++)
                 {
-                   // tmpVector.x = gridPositionParameters.xOffSet * x;
-                   // tmpVector.z = gridPositionParameters.zOffset * i;
-                    Vector3 cellPosition = new Vector3(x * 1 - offsetX,
-                        0, y * 1 - offsetY) + transform.position;
-                   activeGrids[y*gridSize+ x].transform.position =cellPosition;
 
+                    tmpVector.x = x * 1 - offsetX;
+                    tmpVector.z = y * 1 - offsetY;
+                    if (isEven)
+                        tmpVector.x += evenOffSet;
 
-                    //gridPositionParameters
+                    activeGrids[y * gridSize + x].transform.position = tmpVector;
+                    activeGrids[y * gridSize + x].SetGridPosition(y * gridSize + x);
                 }
             }
         }
         private void DeactivateUnUsedGrids(int from)
         {
-            for (int i = from; i < activeGrids.Count; i++)
+            for (var i = from; i < activeGrids.Count; i++)
             {
                 pool.BackToPool(activeGrids[i]);
             }
@@ -67,19 +73,104 @@ namespace GameOne
         }
         private void ClearGrids()
         {
-            for (int i = 0; i < activeGrids.Count; i++)
+            for (var i = 0; i < activeGrids.Count; i++)
             {
                 activeGrids[i].ClearGrid();
             }
         }
-        public bool CheckGrid()
+
+
+        #region Match Checking
+        public void CheckGrid(Grid grid)
         {
-            return false;
-        }
-        private void OnMatch()
-        {
+            if (!HasAdjescent(grid.GetIndex))
+                return;
+
+            var adjescentGrids = new List<Grid>();
+            adjescentGrids = FindAdjescentGrids(grid.GetIndex);
+            if (adjescentGrids.Count >=3)
+                OnMatch(adjescentGrids);
+            else
+            {
+                Debug.Log(adjescentGrids.Count);
+                foreach (var item in adjescentGrids)
+                {
+                    item.IsInSearch = false;
+                }
+            }
 
         }
+        private bool HasAdjescent(int index)
+        {
+            var returnVal = false;
+            var gridLength = gridSize * gridSize;
+
+            if (index%gridSize!=0)
+            {
+              //  Debug.Log("Sol gidebilir");
+                returnVal = true;
+              //  returnVal = activeGrids[index - 1].IsOccupied;
+            }
+
+            if (!returnVal && (index+1) % gridSize != 0)
+            {
+              //  Debug.Log("sað gidebilir");
+                returnVal = true;
+                //returnVal = activeGrids[index +1].IsOccupied;
+            }
+
+            if (!returnVal && index+gridSize < gridLength)
+            {
+             //   Debug.Log("yukarý gidebilir");
+                returnVal = true;
+               // returnVal = activeGrids[index + gridSize].IsOccupied;
+            }
+
+            if (!returnVal && index-gridSize >= 0)
+            {
+              //  Debug.Log("aþaðý gidebilir");
+                returnVal = true;
+              //  returnVal = activeGrids[index - gridSize].IsOccupied;
+            }
+
+            return returnVal;
+        }
+        private List<Grid> FindAdjescentGrids(int index)
+        {
+            var returnGrid = new List<Grid>();
+            activeGrids[index].IsInSearch = true;
+            returnGrid.Add(activeGrids[index]);
+
+            if (index % gridSize != 0 && activeGrids[index - 1].IsOccupied && !activeGrids[index - 1].IsInSearch)
+            {
+                returnGrid.AddRange(FindAdjescentGrids(index-1));
+            }
+            if ((index + 1) % gridSize != 0 && activeGrids[index + 1].IsOccupied && !activeGrids[index + 1].IsInSearch)
+            {
+                returnGrid.AddRange(FindAdjescentGrids(index +1));
+            }
+
+            if (index + gridSize < gridLength && activeGrids[index + gridSize].IsOccupied && !activeGrids[index + gridSize].IsInSearch)
+            {
+                returnGrid.AddRange(FindAdjescentGrids(index + gridSize));
+            }
+
+            if (index - gridSize >= 0&& activeGrids[index - gridSize].IsOccupied && !activeGrids[index - gridSize].IsInSearch)
+            {
+                returnGrid.AddRange(FindAdjescentGrids(index - gridSize));
+            }
+            return returnGrid;
+        }
+        private void OnMatch(List<Grid> grid)
+        {
+            Debug.Log(grid.Count);
+            foreach (var item in grid)
+            {
+                item.ClearGrid();
+            }
+            uiController.IncreaseMatchCount();
+        }
+        #endregion
 
 
 #if UNITY_EDITOR
@@ -87,23 +178,24 @@ namespace GameOne
         #region Editor
         public void EditorBuildGrid()
         {
-            var newGridSize = gridSize * gridSize;
-            Debug.Log(activeGrids.Count + " " + newGridSize);
-            if (activeGrids.Count < newGridSize)
+            if (gridSize < 2)
+                return;
+            gridLength = gridSize * gridSize;
+            if (activeGrids.Count < gridLength)
             {
-                activeGrids.AddRange(pool.EditorGetWantedSizeGrid(activeGrids.Count, newGridSize));
+                activeGrids.AddRange(pool.EditorGetWantedSizeGrid(activeGrids.Count, gridLength));
             }
             else
             {
-                Debug.Log("Deactive ");
-                EditorDeactivateUnUsedGrids(newGridSize);
+                EditorDeactivateUnUsedGrids(gridLength);
             }
             ClearGrids();
             PositionGrid();
+            camController.GridSizeChanged(gridSize);
         }
         private void EditorDeactivateUnUsedGrids(int from)
         {
-            for (int i = from; i < activeGrids.Count; i++)
+            for (var i = from; i < activeGrids.Count; i++)
             {
                 activeGrids[i].gameObject.SetActive(false);
             }
@@ -111,11 +203,5 @@ namespace GameOne
         }
         #endregion
 #endif
-        [System.Serializable] 
-        class GridPositionParameters
-        {
-            public float xOffSet;
-            public float zOffset;
-        }
     }
 }

@@ -4,21 +4,24 @@ namespace GameOne
     public class GameManager : MonoBehaviour
     {
         [SerializeField] private GridManager gridManager;
-        [SerializeField] private UIManager uiManager;
+        [SerializeField] private UIController uiController;
         [SerializeField] private GridPool pool;
+        [SerializeField] private CameraController cameraController;
         [SerializeField][Range(0, 10)] private int gridSize;
         void Start()
         {
-            gridManager.Init(pool, uiManager,gridSize);
-            uiManager.Init(gridManager);
             pool.Init(gridManager);
+            gridManager.Init(pool, cameraController, uiController,gridSize);
+            uiController.Init(gridManager);
+            cameraController.Init();
         }
         private void OnValidate()
         {
-            gridManager.Init(pool, uiManager,gridSize);
+            if (Application.isPlaying)
+                return;
+            gridManager.Init(pool, cameraController, uiController,gridSize);
+            cameraController.Init();
             gridManager.EditorBuildGrid();
-
         }
     }
-
 }
