@@ -6,18 +6,18 @@ namespace GameTwo
     public class LevelManager : Singleton<LevelManager>
     {
         [SerializeField] private LevelDataScriptable[] levelData;
+        [SerializeField] private GameObject[] cinemachineCameras;
         private StackManager stackManager;
         private int currentLevel = 0;
-
         private List<Action> resetActions;
+        private List<Action> levelSuccess;
 
 
-        public void Init(StackManager stackManager,Action UIControllerResetAction, Action PlayerControllerResetAction)
+        public void Init(StackManager stackManager, List<Action> resetActions, List<Action> levelSuccess)
         {
             this.stackManager = stackManager;
-            resetActions = new();
-            resetActions.Add(UIControllerResetAction);
-            resetActions.Add(PlayerControllerResetAction);
+            this.resetActions = resetActions;
+            this.levelSuccess = levelSuccess;
         }
 
 
@@ -27,6 +27,8 @@ namespace GameTwo
             {
                 item?.Invoke();
             }
+            cinemachineCameras[0].SetActive(true);
+            cinemachineCameras[1].SetActive(false);
         }
         public void LevelStart()
         {
@@ -34,11 +36,20 @@ namespace GameTwo
             GameManager.instance.LevelStart();
         }
 
-        public void OnLevelSucces()
+        public void LevelSucces()
         {
-
+            GameManager.instance.LevelSuccess();
+            foreach (var item in levelSuccess)
+            {
+                item?.Invoke();
+            }
         }
-        public void OnLevelFailed()
+        public void PlayerOnPlatform()
+        {
+            cinemachineCameras[0].SetActive(false);
+            cinemachineCameras[1].SetActive(true);
+        }
+        public void LevelFailed()
         {
             GameManager.instance.LevelFailed();
             Debug.Log("Level Failed");

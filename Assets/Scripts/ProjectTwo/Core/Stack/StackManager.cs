@@ -32,7 +32,7 @@ namespace GameTwo
         }
         public void Reset()
         {
-            currentStackCount = 0;
+            colorIndex = 0;
             currentStackCount = 0;
             stackMovement.currentStackTransform = stackMovement.startStack;
             previousScale = stackMovement.startStack.localScale.x;
@@ -44,7 +44,6 @@ namespace GameTwo
         }
         public void OnLevelStart(int maxStackCount)
         {
-            
             levelStackCount = maxStackCount;
             SetStackTransform();
             currentStack.OpenStack(ref GetNextColor());
@@ -57,10 +56,16 @@ namespace GameTwo
             currentStackCount++;
 
             StopCurrentStack();
-            if (GameManager.instance.GetGameStates != GameStates.Playing)
+            
+            if (GameManager.instance.GetGameState != GameStates.Playing)
                 return;
             previousScale = stackMovement.currentStackTransform.localScale.x;
             previousXPosition = stackMovement.currentStackTransform.localPosition.x;
+            if (currentStackCount >= levelStackCount)
+            {
+                SuccessLevel();
+                return;
+            }
             stackMovement.isMovingRight = !stackMovement.isMovingRight;
             SetStackTransform();
             currentStack.OpenStack(ref GetNextColor());
@@ -75,7 +80,6 @@ namespace GameTwo
             stackMovement.stackScale = stackMovement.currentStackTransform.transform.localScale;
             if (currentStack != null)
                 usedStackList.Add(currentStack);
-
             currentStack = poolManager.GetStack();
             currentStack.transform.position = stackMovement.stackPosition;
             currentStack.transform.localScale= stackMovement.stackScale;
@@ -176,13 +180,20 @@ namespace GameTwo
             CorrectTapMovePlayer(newPivot);
         }
         #endregion
+        #region Game Stage Changes
         private void LevelFailed()
         {
             PlayerFall(stackMovement.currentStackTransform.localPosition);
             FailDroppable(currentStack.transform.localScale, currentStack.transform.position);
             poolManager.BackToPoolStack(currentStack);
-            LevelManager.instance.OnLevelFailed();
+            LevelManager.instance.LevelFailed();
         }
+        private void SuccessLevel()
+        {
+            LevelManager.instance.LevelSucces();
+        }
+        #endregion
+
         #region Player Actions
         private void CorrectTapMovePlayer(Vector3 toPos)
         {

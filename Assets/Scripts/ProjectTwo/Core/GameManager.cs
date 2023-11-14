@@ -1,11 +1,15 @@
-using UnityEngine;
+using System.Collections.Generic;
 using System.Collections;
+using UnityEngine;
+using System;
+
 namespace GameTwo
 {
     public class GameManager : Singleton<GameManager>
     {
         public static WaitForSeconds droppableCloseDuration = new WaitForSeconds(3);
-        public static WaitForSeconds gameRestartDuration = new WaitForSeconds(3);
+        public static WaitForSeconds gameRestartDurationFail = new WaitForSeconds(3);
+        public static WaitForSeconds gameRestartDurationSuccess = new WaitForSeconds(4);
         private GameStates gameState;
         [Header("Main Managers")]
         [SerializeField] private InputManager inputManager;
@@ -15,8 +19,12 @@ namespace GameTwo
         [SerializeField] private StackManager stackManager;
         [SerializeField] private PlayerController playerController;
         [SerializeField] private PoolManager poolManager;
+
+        private List<Action> resetActions;
+        private List<Action> levelSuccess;
+
         #region Get|Set
-        public GameStates GetGameStates => gameState;
+        public GameStates GetGameState => gameState;
 
         #endregion
         private void Start()
@@ -28,9 +36,17 @@ namespace GameTwo
             playerController.Init();
             poolManager.Init();
             stackManager.Init(poolManager, playerController.MovePlayer, playerController.PlayerFall);
-
-            LevelManager.instance.Init(stackManager, uiController.Reset,playerController.Reset);
+            SetActions();
+            LevelManager.instance.Init(stackManager,resetActions,levelSuccess);
             Reset();
+        }
+        private void SetActions()
+        {
+            resetActions = new();
+            levelSuccess = new();
+
+            resetActions.Add(uiController.Reset);
+            resetActions.Add(playerController.Reset);
         }
         private void Reset()
         {
@@ -39,13 +55,17 @@ namespace GameTwo
             SoundManager.instance.Reset();
 
             inputManager.Reset();
-
             playerController.Reset();
             stackManager.Reset();
         }
-        IEnumerator GameRestartDelay()
+        private IEnumerator GameRestartSucces()
         {
-            yield return gameRestartDuration;
+            yield return gameRestartDurationSuccess;
+            Reset();
+        }
+        private IEnumerator GameRestartFail()
+        {
+            yield return gameRestartDurationFail;
             Reset();
         }
         public void LevelStart()
@@ -56,9 +76,13 @@ namespace GameTwo
         public void LevelFailed()
         {
             ChangeGameState(GameStates.Fail);
-            StartCoroutine(GameRestartDelay());
+            StartCoroutine(GameRestartFail());
         }
-       
+        public void LevelSuccess()
+        {
+            ChangeGameState(GameStates.Success);
+            StartCoroutine(GameRestartSucces());
+        }
         private void ChangeGameState(GameStates toState)
         {
             gameState = toState;

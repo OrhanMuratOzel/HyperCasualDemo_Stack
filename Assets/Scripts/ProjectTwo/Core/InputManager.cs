@@ -18,7 +18,7 @@ namespace GameTwo
         }
         void Update()
         {
-            if (GameManager.instance.GetGameStates == GameStates.Idle)
+            if (GameManager.instance.GetGameState == GameStates.Idle)
             {
                 if (Input.GetMouseButtonDown(0))
                 {
@@ -26,7 +26,7 @@ namespace GameTwo
                 }
                 return;
             }
-            if (GameManager.instance.GetGameStates != GameStates.Playing)
+            if (GameManager.instance.GetGameState != GameStates.Playing)
                 return;
 
             if (Input.GetMouseButtonDown(0))

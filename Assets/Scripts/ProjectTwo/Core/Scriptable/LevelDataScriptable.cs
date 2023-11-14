@@ -7,11 +7,13 @@ namespace GameTwo
     public class LevelDataScriptable : ScriptableObject
     {
         public int stackCount;
+        public float platformLength;
         public List<StarData> starData;
         public List<DiamondData> diamondData;
-        public LevelDataScriptable(int stackCount, List<StarData> starData, List<DiamondData> diamondData)
+        public LevelDataScriptable(int stackCount, int platformLength,List<StarData> starData, List<DiamondData> diamondData)
         {
             this.stackCount = stackCount;
+            this.platformLength = platformLength;
             this.starData = starData;
             this.diamondData= diamondData;
         }

@@ -13,7 +13,6 @@ namespace GameTwo
         [SerializeField] private Transform[] instantiateTransforms;
         [SerializeField] private DroppableStackPiece droppablePrefab;
         [SerializeField] private Stack stackPrefab;
-
         public void Init()
         {
             droppablePool = new(staticDroppableList,droppablePrefab, instantiateTransforms[0]);
