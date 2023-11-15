@@ -21,7 +21,6 @@ namespace GameTwo
         public void ActivatePiece(ref Vector3 scale,ref Vector3 spawnPoint, ref Color color)
         {
             Reset();
-
             mpb.SetColor(StackManager.ColorID, color);
             meshRenderer.SetPropertyBlock(mpb);
             transform.localScale = scale;

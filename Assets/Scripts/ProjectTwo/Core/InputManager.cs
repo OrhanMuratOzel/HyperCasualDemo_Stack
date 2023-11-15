@@ -8,14 +8,6 @@ namespace GameTwo
         {
             this.stackManager = stackManager;
         }
-        public void Reset()
-        {
-
-        }
-        public void OnLevelStart()
-        {
-
-        }
         void Update()
         {
             if (GameManager.instance.GetGameState == GameStates.Idle)
@@ -34,11 +26,9 @@ namespace GameTwo
                 OnMouseButtonDown();
             }
         }
-
         private void OnMouseButtonDown()
         {
             stackManager.StopStackObject();
         }
-
     }
 }

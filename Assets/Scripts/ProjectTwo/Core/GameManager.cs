@@ -54,7 +54,6 @@ namespace GameTwo
             LevelManager.instance.Reset();
             SoundManager.instance.Reset();
 
-            inputManager.Reset();
             playerController.Reset();
             stackManager.Reset();
         }
