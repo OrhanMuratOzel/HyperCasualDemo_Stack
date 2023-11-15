@@ -113,6 +113,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   particleSystem: {fileID: 4296501269805756775}
+  model: {fileID: 6552420366215582885}
 --- !u!95 &6552420366382043170
 Animator:
   serializedVersion: 5

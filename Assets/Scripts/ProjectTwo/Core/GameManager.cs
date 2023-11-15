@@ -18,10 +18,10 @@ namespace GameTwo
         [Header("Sub Managers")]
         [SerializeField] private StackManager stackManager;
         [SerializeField] private PlayerController playerController;
+        [SerializeField] private LevelDesigner lvDesigner;
         [SerializeField] private PoolManager poolManager;
 
         private List<Action> resetActions;
-        private List<Action> levelSuccess;
 
         #region Get|Set
         public GameStates GetGameState => gameState;
@@ -35,16 +35,16 @@ namespace GameTwo
 
             playerController.Init();
             poolManager.Init();
+            lvDesigner.Init(poolManager);
             stackManager.Init(poolManager, playerController.MovePlayer, playerController.PlayerFall);
             SetActions();
-            LevelManager.instance.Init(stackManager,resetActions,levelSuccess);
+
+            LevelManager.instance.Init(stackManager,resetActions);
             Reset();
         }
         private void SetActions()
         {
             resetActions = new();
-            levelSuccess = new();
-
             resetActions.Add(uiController.Reset);
             resetActions.Add(playerController.Reset);
         }

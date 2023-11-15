@@ -6,34 +6,87 @@ namespace GameTwo
 {
     public class PoolManager : MonoBehaviour
     {
-        private Pool<Stack> stackPool;
-        private Pool<DroppableStackPiece> droppablePool;
-        [SerializeField] private List<DroppableStackPiece> staticDroppableList;
-        [SerializeField] private List<Stack> staticStackList;
-        [SerializeField] private Transform[] instantiateTransforms;
-        [SerializeField] private DroppableStackPiece droppablePrefab;
-        [SerializeField] private Stack stackPrefab;
+
+        [SerializeField] private PoolVariables<DroppableStackPiece> droppablePool;
+        [Space]
+        [SerializeField] private PoolVariables<Stack> stackPool;
+        [Space]
+
+        [SerializeField] private PoolVariables<Diamond> diamondPool;
+        [Space]
+        [SerializeField] private PoolVariables<Star> starPool;
         public void Init()
         {
-            droppablePool = new(staticDroppableList,droppablePrefab, instantiateTransforms[0]);
-            stackPool = new(staticStackList, stackPrefab, instantiateTransforms[1]);
+            droppablePool.SetPool();
+            stackPool.SetPool();
+
+            diamondPool.SetPool();
+            starPool.SetPool();
         }
+
+        #region Star Pool
+        public Star GetStar()
+        {
+            var obj = starPool.pool.GetFromPool();
+            if (obj is null)
+            {
+                obj = Instantiate(starPool.prefab, starPool.instantiateTransform);
+                obj.Init();
+            }
+
+            return obj == null ? Instantiate(starPool.prefab, starPool.instantiateTransform) : obj;
+        }
+        public void BackToPoolStar(Star star)
+        {
+            starPool.pool.BackToPool(star);
+        }
+        #endregion
+
+        #region Diamond Pool
+        public Diamond GetDiamond()
+        {
+            var obj = diamondPool.pool.GetFromPool();
+            if (obj is null)
+            {
+                obj = Instantiate(diamondPool.prefab, diamondPool.instantiateTransform);
+                obj.Init();
+            }
+            return obj == null ? Instantiate(diamondPool.prefab, diamondPool.instantiateTransform) : obj;
+        }
+        public void BackToPoolDiamond(Diamond diamond)
+        {
+            diamondPool.pool.BackToPool(diamond);
+        }
+        #endregion
 
         #region Stack Pool
         public Stack GetStack()
         {
-            return stackPool.GetFromPool();
+            var obj = stackPool.pool.GetFromPool();
+            if (obj is null)
+            {
+                obj = Instantiate(stackPool.prefab, stackPool.instantiateTransform);
+                obj.Init();
+            }
+
+            return obj == null ? Instantiate(stackPool.prefab, stackPool.instantiateTransform) : obj;
         }
         public void BackToPoolStack(Stack stack)
         {
-            stackPool.BackToPool(stack);
+            stackPool.pool.BackToPool(stack);
         }
         #endregion
 
         #region Droppable Pool
         public DroppableStackPiece GetDroppable()
         {
-            return droppablePool.GetFromPool();
+            var obj = droppablePool.pool.GetFromPool();
+            if (obj is null)
+            {
+                obj = Instantiate(droppablePool.prefab, droppablePool.instantiateTransform);
+                obj.Init();
+            }
+            return obj;
         }
         public void BackToPoolDroppable(DroppableStackPiece droppable)
         {
@@ -42,30 +95,40 @@ namespace GameTwo
         IEnumerator AutoCloser(DroppableStackPiece droppable)
         {
             yield return GameManager.droppableCloseDuration;
-            droppablePool.BackToPool(droppable);
+            droppablePool.pool.BackToPool(droppable);
         }
         #endregion
     }
-    public class Pool<T> : MonoBehaviour where T :MonoBehaviour, IPoolObject
+    [System.Serializable]
+    public class PoolVariables<T> where T : MonoBehaviour, IPoolObject
+    {
+        public T prefab;
+        public List<T> staticList;
+        [HideInInspector] public Pool<T> pool;
+        public Transform instantiateTransform;
+        public void SetPool()
+        {
+            pool = new Pool<T>();
+            pool.SetPool(staticList);
+        }
+    }
+    public class Pool<T> where T : MonoBehaviour, IPoolObject
     {
         private Queue<T> dynamicPool;
         private List<T> staticPoolList;
-        private T objPrefab;
-        private Transform instantiateTransform;
+
         #region Initiliaze
-        public Pool(List<T> staticPoolList, T gridPrefab,Transform instantiateTransform)
+        public void SetPool(List<T> staticPoolList)
         {
             dynamicPool = new Queue<T>();
             this.staticPoolList = staticPoolList;
-            this.objPrefab = gridPrefab;
-            this.instantiateTransform = instantiateTransform;
             AddStaticListToQueue();
         }
         private void AddStaticListToQueue()
         {
             for (var i = 0; i < staticPoolList.Count; i++)
             {
-               staticPoolList[i].Init();
+                staticPoolList[i].Init();
                 staticPoolList[i].gameObject.SetActive(false);
                 BackToPool(staticPoolList[i]);
             }
@@ -75,14 +138,8 @@ namespace GameTwo
         #region Get From Pool
         public T GetFromPool()
         {
-            var obj = dynamicPool.Count > 0 ? dynamicPool.Dequeue() : CreateGrid();
+            var obj = dynamicPool.Count > 0 ? dynamicPool.Dequeue() : null;
             return obj;
-        }
-        private T CreateGrid()
-        {
-            var poolObj = Instantiate(objPrefab, instantiateTransform);
-            poolObj.Init();
-            return poolObj;
         }
         #endregion
 

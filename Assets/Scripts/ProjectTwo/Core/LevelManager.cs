@@ -5,22 +5,18 @@ namespace GameTwo
 {
     public class LevelManager : Singleton<LevelManager>
     {
+        [SerializeField] private LevelDesigner levelDesigner;
         [SerializeField] private LevelDataScriptable[] levelData;
         [SerializeField] private GameObject[] cinemachineCameras;
         private StackManager stackManager;
         private int currentLevel = 0;
         private List<Action> resetActions;
-        private List<Action> levelSuccess;
 
-
-        public void Init(StackManager stackManager, List<Action> resetActions, List<Action> levelSuccess)
+        public void Init(StackManager stackManager, List<Action> resetActions)
         {
             this.stackManager = stackManager;
             this.resetActions = resetActions;
-            this.levelSuccess = levelSuccess;
         }
-
-
         public void Reset()
         {
             foreach (var item in resetActions)
@@ -29,20 +25,19 @@ namespace GameTwo
             }
             cinemachineCameras[0].SetActive(true);
             cinemachineCameras[1].SetActive(false);
+            var currentLevelData = levelData[currentLevel % levelData.Length];
+            levelDesigner.LoadLevel(currentLevelData);
         }
         public void LevelStart()
         {
-            stackManager.OnLevelStart(levelData[currentLevel].stackCount);
+            var currentLevelData = levelData[currentLevel % levelData.Length];
+            stackManager.OnLevelStart(currentLevelData.stackCount);
             GameManager.instance.LevelStart();
         }
-
         public void LevelSucces()
         {
             GameManager.instance.LevelSuccess();
-            foreach (var item in levelSuccess)
-            {
-                item?.Invoke();
-            }
+            currentLevel++;
         }
         public void PlayerOnPlatform()
         {
@@ -52,8 +47,6 @@ namespace GameTwo
         public void LevelFailed()
         {
             GameManager.instance.LevelFailed();
-            Debug.Log("Level Failed");
         }
-
     }
 }

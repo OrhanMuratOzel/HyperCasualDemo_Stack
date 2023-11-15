@@ -19,7 +19,7 @@ namespace GameTwo
             }
             if (GUILayout.Button("Load Level"))
             {
-                levelDesigner.LoadLevel();
+                levelDesigner.LoadLevel(levelDesigner.GetSelectedLevel);
             }
             EditorGUILayout.Space();
             base.OnInspectorGUI();

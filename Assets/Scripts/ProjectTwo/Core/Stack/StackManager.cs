@@ -34,8 +34,10 @@ namespace GameTwo
         {
             colorIndex = 0;
             currentStackCount = 0;
+            currentStack = null;
             stackMovement.currentStackTransform = stackMovement.startStack;
             previousScale = stackMovement.startStack.localScale.x;
+            previousXPosition = stackMovement.startStack.localPosition.x;
             foreach (var item in usedStackList)
             {
                 poolManager.BackToPoolStack(item);
@@ -63,6 +65,7 @@ namespace GameTwo
             previousXPosition = stackMovement.currentStackTransform.localPosition.x;
             if (currentStackCount >= levelStackCount)
             {
+                usedStackList.Add(currentStack);
                 SuccessLevel();
                 return;
             }
@@ -126,6 +129,7 @@ namespace GameTwo
 
             if (Mathf.Abs(stackMovement.currentStackTransform.localPosition.x) > previousScale+ Mathf.Abs(previousXPosition))
             {
+                Debug.LogWarning("Stack is out of area");
                 LevelFailed();
                 return;
             }
@@ -154,6 +158,7 @@ namespace GameTwo
                 tmpScale.x = newScale;
                 if (tmpScale.x < minStackScale)
                 {
+                    Debug.LogWarning($"Stack is smaller than minScale :{minStackScale} > {tmpScale.x}");
                     LevelFailed();
                     return;
                 }
@@ -167,6 +172,7 @@ namespace GameTwo
                 tmpScale.x = newScale;
                 if (tmpScale.x < minStackScale)
                 {
+                    Debug.LogWarning($"Stack is smaller than minScale :{minStackScale} > {tmpScale.x}");
                     LevelFailed();
                     return;
                 }

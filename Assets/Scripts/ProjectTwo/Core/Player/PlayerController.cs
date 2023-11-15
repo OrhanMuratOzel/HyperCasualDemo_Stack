@@ -32,12 +32,11 @@ namespace GameTwo
         {
             if (GameManager.instance.GetGameState == GameStates.Success)
             {
-               
                 PlayerToFinishLine();
-               
             }
             else
                 playerAnimator.Play(PlayerIdleAnimation);
+            moveTween = null;
         }
         private void PlayerToFinishLine()
         {
@@ -71,13 +70,15 @@ namespace GameTwo
         {
             if (moveTween != null)
                 moveTween.Kill();
+            else
+                playerAnimator.Play(PlayerRunAnimation);
+
             toPos.y = transform.position.y;
             modelTransform.LookAt(toPos);
             moveTween = transform.DOMove(toPos, .5f).OnComplete(() =>
             {
                 StopPlayer();
             });
-            playerAnimator.Play(PlayerRunAnimation);
         }
         #endregion
     }

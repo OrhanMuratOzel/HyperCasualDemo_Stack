@@ -10,14 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9f67507ae6ccf314d9f334ac6b5ab9b2, type: 3}
-  m_Name: LevelOne
+  m_Name: LevelData 1
   m_EditorClassIdentifier: 
   stackCount: 5
+  platformLength: 5
   starData:
   - transformData:
-      startPosition: {x: 0, y: 0, z: 0}
+      startPosition: {x: 0, y: 0, z: 10}
       startRotation: {x: 0, y: 0, z: 0, w: 0}
   diamondData:
   - transformData:
-      startPosition: {x: 0, y: 0, z: 0}
+      startPosition: {x: 0, y: 0, z: 5}
       startRotation: {x: 0, y: 0, z: 0, w: 0}

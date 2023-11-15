@@ -5,13 +5,15 @@ namespace GameTwo
 {
     public class Star : MonoBehaviour, ICollectable, IPoolObject
     {
-        [SerializeField] private ParticleSystem particleSystem;
-        private Collider collider;
+        [SerializeField] private new ParticleSystem particleSystem;
+        [SerializeField] private GameObject model;
+
+        private new Collider collider;
         public void Collected()
         {
             particleSystem.Play();
             collider.enabled = false;
-            CloseFunctions();
+            model.SetActive(false);
         }
         public void Init()
         {
@@ -20,13 +22,10 @@ namespace GameTwo
         public void Reset()
         {
             particleSystem.Stop();
+            model.SetActive(true);
             collider.enabled = true;
         }
-        private IEnumerator CloseFunctions()
-        {
-            yield return null;
-            gameObject.SetActive(false);
-        }
+       
         private void OnTriggerEnter(Collider other)
         {
             Collected();
